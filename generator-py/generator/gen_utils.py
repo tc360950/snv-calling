@@ -1,6 +1,6 @@
 import logging
 import sys
-from typing import Tuple, TypeVar, Callable, Set
+from typing import Tuple, TypeVar, Callable, Set, List
 
 CNEvent = Tuple[int, int]
 SNVEvent = int
@@ -23,11 +23,16 @@ def __sample_conditionally(sampler: Callable[[], T], condition: Callable[[T], bo
     return sample
 
 
-def sample_conditionally(k: int, sampler: Callable[[], T], condition: Callable[[T], bool]) -> Set[T]:
+def sample_conditionally_without_replacement(k: int, sampler: Callable[[], T], condition: Callable[[T], bool]) -> Set[
+    T]:
     result = set()
     for _ in range(0, k):
         result.add(__sample_conditionally(sampler, lambda x: x not in result and condition(x)))
     return result
+
+
+def sample_conditionally_with_replacement(k: int, sampler: Callable[[], T], condition: Callable[[T], bool]) -> List[T]:
+    return [__sample_conditionally(sampler, condition) for _ in range(0, k)]
 
 
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")

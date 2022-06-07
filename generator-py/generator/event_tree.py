@@ -1,13 +1,13 @@
 import random
 from dataclasses import dataclass
-from typing import Dict, Set, List
+from typing import Dict, Set
 
 import networkx as nx
 import numpy as np
 
-from context import SNVGeneratorContext
-from tree_sampler import RandomWalkTreeSampler
-from utils import CNEvent, SNVEvent, cn_events_overlap, EventTreeRoot, sample_conditionally
+from generator.context import SNVGeneratorContext
+from generator.tree_sampler import RandomWalkTreeSampler
+from generator.gen_utils import CNEvent, SNVEvent, EventTreeRoot, sample_conditionally_without_replacement
 
 
 @dataclass
@@ -42,7 +42,7 @@ class EventTreeGenerator:
 
     def __generate_snv_events_for_node(self, tree_node: CNEvent, cn_tree: nx.DiGraph, ancestors_snvs: Set[SNVEvent], node_to_snvs: Dict[CNEvent, Set[SNVEvent]]) -> None:
         snv_candidates = self.context.get_snv_event_candidates()
-        events = sample_conditionally(
+        events = sample_conditionally_without_replacement(
             k=self.context.sample_number_of_snvs_for_edge(len(snv_candidates) - len(ancestors_snvs)),
             sampler=lambda: random.sample(snv_candidates, 1)[0], condition=lambda x: x not in ancestors_snvs)
         node_to_snvs[tree_node] = events
