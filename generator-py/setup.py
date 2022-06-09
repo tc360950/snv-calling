@@ -10,7 +10,7 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3"
     ],
-    packages=["generator"],
+    packages=["generator", "solver"],
     install_requires=[
       'numpy>=1.22.3',
       'pandas>=1.4.2',

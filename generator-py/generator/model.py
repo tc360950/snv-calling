@@ -70,8 +70,8 @@ class SNVModel:
         if cn == 0:
             mean = self.context.get_d_sampling_error()
         num_failures = int(
-            (1 - self.context.get_read_success_probablity()) * mean / self.context.get_read_success_probablity())
-        return np.random.negative_binomial(num_failures, self.context.get_read_success_probablity())
+            (1.0 - self.context.get_read_success_probablity()) * mean / self.context.get_read_success_probablity())
+        return np.random.negative_binomial(num_failures, 1 - self.context.get_read_success_probablity())
 
     def __sample_altered_reads_in_bin(self, altered_counts: int, total_reads: int, cn: int) -> int:
         if altered_counts == 0:

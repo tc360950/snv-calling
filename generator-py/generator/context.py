@@ -12,13 +12,13 @@ class SNVGeneratorContext(ABC):
         return 0.05
 
     def get_d_sampling_error(self) -> float:
-        return 0.005
+        return 0.0001
 
     def get_read_success_probablity(self) -> float:
-        return 0.1
+        return 0.00001
 
     def get_per_allele_coverage(self) -> float:
-        return 0.05
+        return 0.03
 
     def get_neutral_cn(self) -> int:
         return 2
