@@ -8,11 +8,14 @@ from generator.gen_utils import SNVEvent, CNEvent, sample_conditionally_with_rep
 
 
 class SNVGeneratorContext(ABC):
-    def get_epsilon(self) -> float:
+    def get_b_sampling_error(self) -> float:
         return 0.05
 
-    def get_total_number_of_reads(self) -> int:
-        return 100000
+    def get_d_sampling_error(self) -> float:
+        return 0.005
+
+    def get_read_success_probablity(self) -> float:
+        return 0.1
 
     def get_per_allele_coverage(self) -> float:
         return 0.05
