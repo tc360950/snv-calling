@@ -15,7 +15,7 @@ def cn_events_overlap(ev1: CNEvent, ev2: CNEvent) -> bool:
     return (ev1[0] <= ev2[0] < ev1[1]) or (ev2[0] <= ev1[0] < ev2[1])
 
 
-def __sample_conditionally(sampler: Callable[[], T], condition: Callable[[T], bool]) -> T:
+def sample_conditionally(sampler: Callable[[], T], condition: Callable[[T], bool]) -> T:
     """
         Returns first result of call to @sampler which satisfies @condition
     """
@@ -29,12 +29,12 @@ def sample_conditionally_without_replacement(k: int, sampler: Callable[[], T], c
     T]:
     result = set()
     for _ in range(0, k):
-        result.add(__sample_conditionally(sampler, lambda x: x not in result and condition(x)))
+        result.add(sample_conditionally(sampler, lambda x: x not in result and condition(x)))
     return result
 
 
 def sample_conditionally_with_replacement(k: int, sampler: Callable[[], T], condition: Callable[[T], bool]) -> List[T]:
-    return [__sample_conditionally(sampler, condition) for _ in range(0, k)]
+    return [sample_conditionally(sampler, condition) for _ in range(0, k)]
 
 
 NodeType = TypeVar('NodeType')

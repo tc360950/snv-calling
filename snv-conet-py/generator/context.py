@@ -1,6 +1,6 @@
 from abc import ABC
 import random
-from typing import List
+from typing import List, Optional
 import numpy as np
 
 from generator.gen_utils import SNVEvent, CNEvent, sample_conditionally_with_replacement
@@ -8,6 +8,9 @@ from generator.gen_utils import SNVEvent, CNEvent, sample_conditionally_with_rep
 
 
 class SNVGeneratorContext(ABC):
+    def get_max_cn(self) -> int:
+        return 9
+
     def get_b_sampling_error(self) -> float:
         return 0.05
 
@@ -32,12 +35,13 @@ class SNVGeneratorContext(ABC):
                 :return:
                 """
 
+        max_amplification = min(2, self.get_max_cn(), max([parent_cn_profile[b] for b in range(event[0], event[1])]))
         if np.sum(overlap_bit_map) == 0.0: # No bin is present in child nodes- we can do full deletion
-            return sample_conditionally_with_replacement(1, lambda: random.randint(-int(np.min(parent_cn_profile)), 2), lambda x: x != 0)[0]
+            return sample_conditionally_with_replacement(1, lambda: random.randint(-int(np.min(parent_cn_profile)), max_amplification + 1), lambda x: x != 0)[0]
 
         min_cn_in_bins_with_overlap = np.min(parent_cn_profile[overlap_bit_map == 1.0])
         max_possible_deletion = -min(2, int(min_cn_in_bins_with_overlap) - 1)
-        return sample_conditionally_with_replacement(1, lambda: random.randint(max_possible_deletion, 2), lambda x: x != 0)[0]
+        return sample_conditionally_with_replacement(1, lambda: random.randint(max_possible_deletion, max_amplification + 1), lambda x: x != 0)[0]
 
 
     def get_number_of_bins(self) -> int:
@@ -52,12 +56,15 @@ class SNVGeneratorContext(ABC):
     def sample_number_of_snvs_for_edge(self, num_available_snvs: int) -> int:
         return min(num_available_snvs, np.random.poisson(lam=1.0, size=None))
 
-    def get_number_of_alterations(self, cn_before: int, cn_after: int) -> int:
+    def get_number_of_alterations(self, cn_before: int, cn_after: int, parent_altered_counts: int) -> int:
         if cn_after == 0:
             return 0
         if cn_after == cn_before:
-            return 1
-        elif cn_after > cn_before:
-            return 1 if random.randint(0, cn_before) > 0 else cn_after - cn_before
+            return parent_altered_counts
+        if cn_after > cn_before:
+            return parent_altered_counts + (cn_after - cn_before) if random.randint(0, cn_before) < parent_altered_counts else parent_altered_counts
+        if cn_after == 0:
+            return 0
         else:
-            return 1 if random.randint(0, cn_before) < cn_after else 0
+            copies_for_deletion = random.sample(range(0, cn_before), cn_before - cn_after)
+            return parent_altered_counts - len([x for x in copies_for_deletion if x < parent_altered_counts])

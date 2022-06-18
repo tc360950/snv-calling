@@ -8,10 +8,10 @@ RUN pip install matplotlib
 RUN apt-get install graphviz libgraphviz-dev pkg-config
 RUN pip install pygraphviz
 
-COPY generator-py/requirements.txt generator-py/requirements.txt
-RUN pip install -r generator-py/requirements.txt
+COPY snv-conet-py/requirements.txt generator-py/requirements.txt
+RUN pip install -r snv-conet-py/requirements.txt
 
-COPY generator-py/ generator-py/
+COPY snv-conet-py/ generator-py/
 WORKDIR generator-py
 RUN pip install .
 

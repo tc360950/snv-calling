@@ -1,7 +1,7 @@
 import setuptools
 
 setuptools.setup(
-    name="generator-py",
+    name="snv-conet-py",
     version="1.0.0",
     author="Tomasz Cakala",
     author_email="tc360950@gmail",

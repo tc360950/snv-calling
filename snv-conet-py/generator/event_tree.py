@@ -7,7 +7,8 @@ import numpy as np
 
 from generator.context import SNVGeneratorContext
 from generator.tree_sampler import RandomWalkTreeSampler
-from generator.gen_utils import CNEvent, SNVEvent, EventTreeRoot, sample_conditionally_without_replacement
+from generator.gen_utils import CNEvent, SNVEvent, EventTreeRoot, sample_conditionally_without_replacement, \
+    apply_to_nodes_in_order
 
 
 @dataclass
@@ -15,41 +16,55 @@ class EventTree:
     cn_event_tree: nx.DiGraph
     node_to_snvs: Dict[CNEvent, Set[SNVEvent]]
 
+    def create_copy_without_snvs(self) -> 'EventTree':
+        return EventTree(cn_event_tree=self.cn_event_tree, node_to_snvs={})
+
     def get_parent(self, node: CNEvent) -> CNEvent:
         return next(self.cn_event_tree.predecessors(node))
 
-    def mark_overlapping_bins_from_descendant(self, node: CNEvent, bit_map: np.ndarray) -> None:
+    def snv_can_be_added_in_node(self, snv: SNVEvent, node: CNEvent) -> bool:
+        snvs = []
+
+        def add_snvs(n: CNEvent) -> None:
+            snvs.extend(self.node_to_snvs.get(n, set()))
+
+        apply_to_nodes_in_order(node, self.cn_event_tree, add_snvs)
+        for n in self.__get_path_from_root(node):
+            snvs.extend(self.node_to_snvs.get(n, set()))
+
+        return snv not in snvs
+
+    def mark_bins_in_descendant_events(self, node: CNEvent, bit_map: np.ndarray) -> np.ndarray:
+        def __mark_overlapping_bins(event: CNEvent) -> None:
+            bit_map[[bin for bin in range(event[0], event[1]) if node[0] <= bin < node[1]]] = 1.0
+
         for descendant in nx.descendants(self.cn_event_tree, node):
             if descendant != node:
-                self.__mark_overlapping_bins(descendant, node, bit_map)
+                __mark_overlapping_bins(descendant)
+        return bit_map
 
-    def mark_bins_with_cn_change_after_alteration(self, node: CNEvent, bit_map: np.ndarray) -> None:
+    def mark_bins_wth_snv(self, node, bit_map: np.ndarray) -> np.ndarray:
         def __mark(n: CNEvent) -> None:
-            if n == EventTreeRoot:
-                return
-            bit_map[list(self.node_to_snvs[n])] = -1.0
-            for bin in range(n[0], n[1]):
-                if bit_map[bin] == -1.0:
-                    bit_map[bin] = 1.0
+            bit_map[list(self.node_to_snvs.get(n, set()))] = 1.0
+
         for n in self.__get_path_from_root(node):
             __mark(n)
+        return bit_map
 
-        for bin in range(0, bit_map.shape[0]):
-            if bit_map[bin] != 1.0:
-                bit_map[bin] = 0.0
+    def mark_bins_with_cn_change_after_alteration(self, node: CNEvent, bit_map: np.ndarray) -> np.ndarray:
+        def __mark(n: CNEvent) -> None:
+            bit_map[list(self.node_to_snvs.get(n, set()))] = -1.0
+            bit_map[[b for b in range(n[0], n[1]) if bit_map[b] == -1.0]] = 1.0
 
+        for n in self.__get_path_from_root(node):
+            __mark(n)
+        bit_map[bit_map != 1.0] = 0.0
+        return bit_map
 
     def __get_path_from_root(self, node: CNEvent) -> List[CNEvent]:
-        result = [node]
-        while node != EventTreeRoot:
-            result.insert(0, node)
-        result.insert(0, EventTreeRoot)
-        return result
-
-    def __mark_overlapping_bins(self, event: CNEvent, reference_event: CNEvent, bit_map: np.ndarray) -> None:
-        for bin in range(event[0], event[1]):
-            if reference_event[0] <= bin < reference_event[1]:
-                bit_map[bin] = 1.0
+        if node == EventTreeRoot:
+            return []
+        return next(nx.all_simple_paths(source=EventTreeRoot, target=node, G=self.cn_event_tree))
 
 
 @dataclass
