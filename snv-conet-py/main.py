@@ -1,7 +1,7 @@
 import json
 
 from generator.context import SNVGeneratorContext
-from generator.model import SNVModel, CellData
+from generator.model import SNVModel
 from generator.gen_utils import sample_conditionally_with_replacement
 
 from typing import List, Tuple, Optional
@@ -100,7 +100,7 @@ model.generate_structure(10)
 
 
 CLUSTER_SIZE = 100
-CLUSTERS = 1000
+CLUSTERS = 100
 
 from solver import CellsData, MLSolver
 

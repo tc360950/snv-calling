@@ -17,18 +17,14 @@ class EventTree:
     node_to_snvs: Dict[CNEvent, Set[SNVEvent]]
 
     def create_copy_without_snvs(self) -> 'EventTree':
-        return EventTree(cn_event_tree=self.cn_event_tree, node_to_snvs={})
+        return EventTree(cn_event_tree=self.cn_event_tree.copy(), node_to_snvs={})
 
     def get_parent(self, node: CNEvent) -> CNEvent:
         return next(self.cn_event_tree.predecessors(node))
 
     def snv_can_be_added_in_node(self, snv: SNVEvent, node: CNEvent) -> bool:
         snvs = []
-
-        def add_snvs(n: CNEvent) -> None:
-            snvs.extend(self.node_to_snvs.get(n, set()))
-
-        apply_to_nodes_in_order(node, self.cn_event_tree, add_snvs)
+        apply_to_nodes_in_order(node, self.cn_event_tree, lambda n: snvs.extend(self.node_to_snvs.get(n, set())))
         for n in self.__get_path_from_root(node):
             snvs.extend(self.node_to_snvs.get(n, set()))
 
@@ -44,11 +40,8 @@ class EventTree:
         return bit_map
 
     def mark_bins_wth_snv(self, node, bit_map: np.ndarray) -> np.ndarray:
-        def __mark(n: CNEvent) -> None:
-            bit_map[list(self.node_to_snvs.get(n, set()))] = 1.0
-
         for n in self.__get_path_from_root(node):
-            __mark(n)
+            bit_map[list(self.node_to_snvs.get(n, set()))] = 1.0
         return bit_map
 
     def mark_bins_with_cn_change_after_alteration(self, node: CNEvent, bit_map: np.ndarray) -> np.ndarray:
@@ -72,19 +65,27 @@ class EventTreeGenerator:
     context: SNVGeneratorContext
 
     def generate(self, tree_size: int) -> EventTree:
-        cn_nodes = [EventTreeRoot] + list(random.sample(self.context.get_cn_event_candidates(), tree_size))
-        event_tree = RandomWalkTreeSampler.sample_tree(cn_nodes)
-        node_to_snvs = {}
-        self.__generate_snv_events_for_node(EventTreeRoot, event_tree, set(), node_to_snvs)
-        return EventTree(event_tree, node_to_snvs)
+        event_tree = RandomWalkTreeSampler.sample_tree(self.__generate_nodes(tree_size))
+        return EventTree(event_tree, self.__generate_snvs(event_tree))
 
-    def __generate_snv_events_for_node(self, tree_node: CNEvent, cn_tree: nx.DiGraph, ancestors_snvs: Set[SNVEvent],
-                                       node_to_snvs: Dict[CNEvent, Set[SNVEvent]]) -> None:
+    def __generate_nodes(self, tree_size: int) -> List[CNEvent]:
+        return [EventTreeRoot] + list(random.sample(self.context.get_cn_event_candidates(), tree_size))
+
+    def __sample_snvs_for_node(self, ancestor_snvs: Set[SNVEvent]) -> Set[SNVEvent]:
         snv_candidates = self.context.get_snv_event_candidates()
-        events = sample_conditionally_without_replacement(
-            k=self.context.sample_number_of_snvs_for_edge(len(snv_candidates) - len(ancestors_snvs)),
-            sampler=lambda: random.sample(snv_candidates, 1)[0], condition=lambda x: x not in ancestors_snvs)
-        node_to_snvs[tree_node] = events
-        ancestors_snvs = ancestors_snvs.union(events)
-        for child in cn_tree.successors(tree_node):
-            self.__generate_snv_events_for_node(child, cn_tree, ancestors_snvs, node_to_snvs)
+        return sample_conditionally_without_replacement(
+            k=self.context.sample_number_of_snvs_for_edge(len(snv_candidates) - len(ancestor_snvs)),
+            sampler=lambda: random.sample(snv_candidates, 1)[0], condition=lambda x: x not in ancestor_snvs)
+
+    def __generate_snvs(self, cn_tree: nx.DiGraph) -> Dict[CNEvent, Set[SNVEvent]]:
+        node_to_snvs = {}
+
+        def __generate_snv_events_for_node(node: CNEvent, ancestor_snvs: Set[SNVEvent]) -> None:
+            node_to_snvs[node] = self.__sample_snvs_for_node(ancestor_snvs)
+            ancestors_snvs = ancestor_snvs.union(node_to_snvs[node])
+            for child in cn_tree.successors(node):
+                __generate_snv_events_for_node(child, ancestors_snvs)
+
+        __generate_snv_events_for_node(EventTreeRoot, set())
+        return node_to_snvs
+

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Set, Generator, Any, Dict
+from typing import Generator, Any, Dict
 
 import networkx as nx
 import numpy as np
@@ -44,7 +44,7 @@ class SNVModel:
 
     def generate_cell_attachment(self) -> Generator[CNEvent, CNEvent, Any]:
         if self.event_tree is None:
-            raise RuntimeError(f"Can;'t generate cells without structure generation. Call generate_structure first!")
+            raise RuntimeError(f"Can't generate cells without structure generation. Call generate_structure first!")
 
         probs = self.__create_node_attachment_probabilities()
         while True:
@@ -81,10 +81,10 @@ class SNVModel:
         return np.random.negative_binomial(num_failures, 1 - self.ctxt.get_read_success_probablity())
 
     def __sample_altered_reads_in_bin(self, altered_counts: int, total_reads: int, cn: int) -> int:
-        if altered_counts == 0:
-            return np.random.binomial(total_reads, self.ctxt.get_b_sampling_error())
-        if total_reads == 0 or cn == 0:
+        if total_reads == 0:
             return 0
+        if altered_counts == 0 or cn == 0:
+            return np.random.binomial(total_reads, self.ctxt.get_b_sampling_error())
         return np.random.binomial(total_reads, altered_counts / cn)
 
     def __sample_cell_data(self, node: CNEvent) -> CellData:
