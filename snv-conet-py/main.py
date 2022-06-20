@@ -2,6 +2,7 @@ import json
 
 from generator.context import SNVGeneratorContext
 from generator.model import SNVModel
+from solver import CellsData, MLSolver
 
 import numpy as np
 
@@ -13,41 +14,56 @@ class GeneratorContext(SNVGeneratorContext):
    pass
 
 
-model = SNVModel(GeneratorContext())
-model.generate_structure(10)
+def simulate(iters: int, clusters: int, cluster_size: int, tree: int):
+    CLUSTER_SIZE = cluster_size
+    CLUSTERS = clusters
 
-CLUSTER_SIZE = 100
-CLUSTERS = 10
+    def generate():
+        model = SNVModel(GeneratorContext())
+        model.generate_structure(tree)
+        cluster_to_cell_data = {}
 
-from solver import CellsData, MLSolver
+        for c in range(0, CLUSTERS):
+            print(f"Generating cluster num {c}")
+            node = next(model.generate_cell_attachment())
+            cell = model.generate_cell_in_node(node)
+            for _ in range(0, CLUSTER_SIZE - 1):
+                cell2 = model.generate_cell_in_node(node)
+                cell.d = cell.d + cell2.d
+                cell.b = cell.b + cell2.b
+            cluster_to_cell_data[c] = cell
 
-cluster_to_cell_data = {}
+        cluster_to_size = dict([(c, CLUSTER_SIZE) for c in range(0, CLUSTERS)])
+        attachment = dict([(c, cluster_to_cell_data[c].attachment) for c in range(0, CLUSTERS)])
 
-for c in range(0, CLUSTERS):
-    print(f"Generating cluster num {c}")
-    node = next(model.generate_cell_attachment())
-    cell = model.generate_cell_in_node(node)
-    for _ in range(0, CLUSTER_SIZE - 1):
-        cell2 = model.generate_cell_in_node(node)
-        cell.d = cell.d + cell2.d
-        cell.b = cell.b + cell2.b
-    cluster_to_cell_data[c] = cell
+        b = np.vstack([cluster_to_cell_data[c].b for c in range(0, CLUSTERS)])
+        d = np.vstack([cluster_to_cell_data[c].d for c in range(0, CLUSTERS)])
 
-cluster_to_size = dict([(c, CLUSTER_SIZE) for c in range(0, CLUSTERS)])
-attachment = dict([(c, cluster_to_cell_data[c].attachment) for c in range(0, CLUSTERS)])
+        cells_data = CellsData(d=d, b=b, attachment=attachment, cell_cluster_sizes=cluster_to_size)
 
-b = np.vstack([cluster_to_cell_data[c].b for c in range(0, CLUSTERS)])
-d = np.vstack([cluster_to_cell_data[c].d for c in range(0, CLUSTERS)])
+        tree_with_snvs = model.event_tree
+        model.event_tree = model.event_tree.create_copy_without_snvs()
 
-cells_data = CellsData(d=d, b=b, attachment=attachment, cell_cluster_sizes=cluster_to_size)
+        solver = MLSolver(cells_data, model, GeneratorContext())
 
-tree_with_snvs = model.event_tree
-model.event_tree = model.event_tree.create_copy_without_snvs()
+        solver.insert_snv_events()
 
-solver = MLSolver(cells_data, model, GeneratorContext())
+        return StatisticsCalculator.calculate_stats(model.event_tree, tree_with_snvs)
 
-solver.insert_snv_events()
+    stats = [generate() for _ in range(0, iters)]
+    result = {}
+    for key in stats[0].keys():
+        result[key] = sum([s[key] for s in stats]) / iters
+    return result
 
-stats = StatisticsCalculator.calculate_stats(model.event_tree, tree_with_snvs)
+clusters = [50, 200, 500]
+sizes = [10, 100]
+tree = [10, 40]
 
-print(json.dumps(stats))
+
+with open("results", "w") as f :
+    for c in clusters:
+        for s in sizes:
+            for t in tree:
+                r = simulate(5, c, s, t)
+                f.write(f"{c};{s};{t};{json.dumps(r)}\n")
