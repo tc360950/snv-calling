@@ -39,7 +39,7 @@ class EventTree:
                 __mark_overlapping_bins(descendant)
         return bit_map
 
-    def mark_bins_wth_snv(self, node, bit_map: np.ndarray) -> np.ndarray:
+    def mark_bins_with_snv(self, node, bit_map: np.ndarray) -> np.ndarray:
         for n in self.__get_path_from_root(node):
             bit_map[list(self.node_to_snvs.get(n, set()))] = 1.0
         return bit_map
@@ -81,10 +81,11 @@ class EventTreeGenerator:
         node_to_snvs = {}
 
         def __generate_snv_events_for_node(node: CNEvent, ancestor_snvs: Set[SNVEvent]) -> None:
-            node_to_snvs[node] = self.__sample_snvs_for_node(ancestor_snvs)
-            ancestors_snvs = ancestor_snvs.union(node_to_snvs[node])
+            if node != EventTreeRoot:
+                node_to_snvs[node] = self.__sample_snvs_for_node(ancestor_snvs)
+                ancestor_snvs = ancestor_snvs.union(node_to_snvs[node])
             for child in cn_tree.successors(node):
-                __generate_snv_events_for_node(child, ancestors_snvs)
+                __generate_snv_events_for_node(child, ancestor_snvs)
 
         __generate_snv_events_for_node(EventTreeRoot, set())
         return node_to_snvs

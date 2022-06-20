@@ -18,7 +18,7 @@ class MLSolver:
         self.cell_data = cd
         self.model = model
         self.context = context
-        self.calculator = LikelihoodCalculator(cell_data=cd, model=model, context=context)
+        self.calculator = LikelihoodCalculator(cell_data=cd, model=model, ctxt=context)
 
     def insert_snv_events(self) -> generator.SNVModel:
         calculator_refresh = self.calculator.get_likelihood_refresher()
