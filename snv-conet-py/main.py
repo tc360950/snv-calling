@@ -6,7 +6,7 @@ from solver import CellsData, MLSolver
 
 import numpy as np
 
-
+from solver.parameters_inference import MMEstimator, NewtonRhapsonEstimator
 from stats.statistics_calculator import StatisticsCalculator
 
 
@@ -41,6 +41,11 @@ def simulate(iters: int, clusters: int, cluster_size: int, tree: int):
 
         cells_data = CellsData(d=d, b=b, attachment=attachment, cell_cluster_sizes=cluster_to_size)
 
+        mm = MMEstimator()
+        p = mm.estimate(cells_data, model)
+        print(p)
+        est = NewtonRhapsonEstimator(cells_data, model)
+        est.solve(p)
         tree_with_snvs = model.event_tree
         model.event_tree = model.event_tree.create_copy_without_snvs()
 
@@ -56,9 +61,9 @@ def simulate(iters: int, clusters: int, cluster_size: int, tree: int):
         result[key] = sum([s[key] for s in stats]) / iters
     return result
 
-clusters = [50, 200, 500]
-sizes = [10, 100]
-tree = [10, 40]
+clusters = [500]
+sizes = [1]
+tree = [10]
 
 
 with open("results", "w") as f :
