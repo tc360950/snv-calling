@@ -9,6 +9,7 @@ import numpy as np
 from solver.parameters_inference import MMEstimator, NewtonRhapsonEstimator
 from stats.statistics_calculator import StatisticsCalculator
 
+np.seterr(all='raise')
 
 class GeneratorContext(SNVGeneratorContext):
    pass
