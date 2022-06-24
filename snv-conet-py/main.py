@@ -6,7 +6,7 @@ from solver import CellsData, MLSolver
 
 import numpy as np
 
-from solver.parameters_inference import MMEstimator, NewtonRhapsonEstimator
+from solver.parameters_inference import MMEstimator, NewtonRhapsonEstimator, QEstimator
 from stats.statistics_calculator import StatisticsCalculator
 
 np.seterr(all='raise')
@@ -44,6 +44,13 @@ def simulate(iters: int, clusters: int, cluster_size: int, tree: int):
 
         mm = MMEstimator()
         p = mm.estimate(cells_data, model)
+        p.q = 0.01
+        p.m = 0.03
+        p.e = 0.001
+        q_est = QEstimator(cells_data, model, p)
+        #q_est.solve(10000000)
+        #while(True):
+         #   x = 0
         print(p)
         est = NewtonRhapsonEstimator(cells_data, model)
         est.solve(p)

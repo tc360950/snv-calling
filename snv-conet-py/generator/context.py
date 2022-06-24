@@ -18,7 +18,7 @@ class SNVGeneratorContext(ABC):
         return 0.001
 
     def get_read_success_probablity(self) -> float:
-        return 0.00001
+        return 0.0001
 
     def get_per_allele_coverage(self) -> float:
         return 0.03
