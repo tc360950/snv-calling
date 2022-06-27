@@ -6,7 +6,7 @@ from solver import CellsData, MLSolver
 
 import numpy as np
 
-from solver.parameters_inference import MMEstimator, NewtonRhapsonEstimator, QEstimator
+from solver.parameters_inference import MMEstimator, NewtonRhapsonEstimator
 from stats.statistics_calculator import StatisticsCalculator
 
 np.seterr(all='raise')
@@ -41,26 +41,19 @@ def simulate(iters: int, clusters: int, cluster_size: int, tree: int):
         d = np.vstack([cluster_to_cell_data[c].d for c in range(0, CLUSTERS)])
 
         cells_data = CellsData(d=d, b=b, attachment=attachment, cell_cluster_sizes=cluster_to_size)
-
         mm = MMEstimator()
-        p = mm.estimate(cells_data, model)
-        p.q = 0.01
-        p.m = 0.03
-        p.e = 0.001
-        q_est = QEstimator(cells_data, model, p)
-        #q_est.solve(10000000)
-        #while(True):
-         #   x = 0
-        print(p)
+        try:
+            p = mm.estimate(cells_data, model)
+        except RuntimeError as e:
+            return generate()
         est = NewtonRhapsonEstimator(cells_data, model)
-        est.solve(p)
+        p = est.solve(p)
         tree_with_snvs = model.event_tree
         model.event_tree = model.event_tree.create_copy_without_snvs()
 
         solver = MLSolver(cells_data, model, GeneratorContext())
 
         solver.insert_snv_events()
-
         return StatisticsCalculator.calculate_stats(model.event_tree, tree_with_snvs)
 
     stats = [generate() for _ in range(0, iters)]
@@ -69,14 +62,14 @@ def simulate(iters: int, clusters: int, cluster_size: int, tree: int):
         result[key] = sum([s[key] for s in stats]) / iters
     return result
 
-clusters = [500]
-sizes = [1]
-tree = [10]
+clusters = [50, 200, 500]
+sizes = [10, 100]
+tree = [10, 40]
 
 
 with open("results", "w") as f :
     for c in clusters:
         for s in sizes:
             for t in tree:
-                r = simulate(5, c, s, t)
+                r = simulate(1, c, s, t)
                 f.write(f"{c};{s};{t};{json.dumps(r)}\n")
