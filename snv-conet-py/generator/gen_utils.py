@@ -1,12 +1,8 @@
 import logging
 import sys
-from typing import Tuple, TypeVar, Callable, Set, List
+from typing import TypeVar, Callable, Set, List
 
-import networkx as nx
-
-CNEvent = Tuple[int, int]
-SNVEvent = int
-EventTreeRoot: CNEvent = (0, 0)
+from core.types import CNEvent
 
 T = TypeVar('T')
 
@@ -35,18 +31,6 @@ def sample_conditionally_without_replacement(k: int, sampler: Callable[[], T], c
 
 def sample_conditionally_with_replacement(k: int, sampler: Callable[[], T], condition: Callable[[T], bool]) -> List[T]:
     return [sample_conditionally(sampler, condition) for _ in range(0, k)]
-
-
-NodeType = TypeVar('NodeType')
-
-
-def apply_to_nodes_in_order(root: NodeType, tree: nx.DiGraph, func: Callable[[NodeType], None]):
-    def __apply_dfs(node: NodeType):
-        func(node)
-        for child in tree.successors(node):
-            __apply_dfs(child)
-
-    __apply_dfs(root)
 
 
 FORMATTER = logging.Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")

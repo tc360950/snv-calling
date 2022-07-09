@@ -5,11 +5,12 @@ import networkx as nx
 import numpy as np
 import random
 
+from core.types import CNEvent, EventTreeRoot
+from core.utils import apply_to_nodes_in_order
 from generator.cn_sampler import CNSampler
 from generator.context import SNVGeneratorContext
 from generator.corrected_counts_generator import CountsGenerator
-from generator.event_tree import EventTreeGenerator, EventTree
-from generator.gen_utils import CNEvent, EventTreeRoot, apply_to_nodes_in_order
+from generator.event_tree_generator import EventTreeGenerator, EventTree
 
 
 @dataclass

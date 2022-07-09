@@ -3,7 +3,8 @@ import random
 from typing import List
 import numpy as np
 
-from generator.gen_utils import SNVEvent, CNEvent, sample_conditionally_with_replacement
+from core.types import CNEvent, SNVEvent
+from generator.gen_utils import sample_conditionally_with_replacement
 
 
 
