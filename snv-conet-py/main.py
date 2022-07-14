@@ -4,7 +4,7 @@ from typing import Tuple
 
 import solver.solver
 from generator.context import SNVGeneratorContext
-from generator.model import SNVModel
+from generator.model import SNVModel, SNVModelGenerator, CellDataSampler
 from solver import CellsData
 
 import numpy as np
@@ -14,8 +14,9 @@ from stats.statistics_calculator import StatisticsCalculator
 
 np.seterr(all='raise')
 
+
 class GeneratorContext(SNVGeneratorContext):
-   pass
+    pass
 
 
 def create_cn_matrix(cells: CellsData, model: SNVModel) -> np.ndarray:
@@ -25,24 +26,25 @@ def create_cn_matrix(cells: CellsData, model: SNVModel) -> np.ndarray:
     return matrix.astype(int)
 
 
-def simulate(a: Tuple[int ,int, int]):
+def simulate(a: Tuple[int, int, int]):
     clusters = a[0]
     cluster_size = a[1]
     tree = a[2]
     CLUSTER_SIZE = cluster_size
     CLUSTERS = clusters
     iters = 5
+
     def generate_model():
-        model = SNVModel(GeneratorContext())
-        model.generate_structure(tree)
+        model = SNVModelGenerator(GeneratorContext()).generate_model(tree)
+        cell_generator = CellDataSampler(GeneratorContext())
         cluster_to_cell_data = {}
 
         for c in range(0, CLUSTERS):
             print(f"Generating cluster num {c}")
-            node = next(model.generate_cell_attachment())
-            cell = model.generate_cell_in_node(node)
+            node = next(cell_generator.generate_cell_attachment(model))
+            cell = cell_generator.generate_cell_in_node(node, model)
             for _ in range(0, CLUSTER_SIZE - 1):
-                cell2 = model.generate_cell_in_node(node)
+                cell2 = cell_generator.generate_cell_in_node(node, model)
                 cell.d = cell.d + cell2.d
                 cell.b = cell.b + cell2.b
             cluster_to_cell_data[c] = cell
@@ -65,15 +67,17 @@ def simulate(a: Tuple[int ,int, int]):
             cn_profiles = create_cn_matrix(cells_data, model)
 
         inferred_tree = solver.solver.solve(cells_data=cells_data,
-                                            tree=EventTreeWithCounts(tree=model.event_tree.create_copy_without_snvs(), node_to_cn_profile=model.node_to_cn_profile))
+                                            tree=EventTreeWithCounts(tree=model.tree.create_copy_without_snvs(),
+                                                                     node_to_cn_profile=model.node_to_cn_profile))
 
-        return StatisticsCalculator.calculate_stats(real_tree=model.event_tree, inferred_tree=inferred_tree)
+        return StatisticsCalculator.calculate_stats(real_tree=model.tree, inferred_tree=inferred_tree)
 
     stats = [generate_and_solve() for _ in range(0, iters)]
     result = {}
     for key in stats[0].keys():
         result[key] = sum([s[key] for s in stats]) / iters
     return result, a
+
 
 clusters = [50, 200, 500]
 sizes = [10, 100]
@@ -87,7 +91,7 @@ for c in clusters:
             a.append((c, s, t))
 
 with open("results", "w") as f:
-    with ProcessPoolExecutor(max_workers=10)as pool:
+    with ProcessPoolExecutor(max_workers=10) as pool:
         for r in pool.map(simulate, a):
             print("OK")
             f.write(f"{r[1][0]};{r[1][1]};{r[1][2]};{json.dumps(r[0])}\n")

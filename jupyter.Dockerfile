@@ -9,7 +9,7 @@ RUN apt-get install graphviz libgraphviz-dev pkg-config
 RUN pip install pygraphviz
 
 COPY snv-conet-py/requirements.txt snv-conet-py/requirements.txt
-RUN pip install -r snv-conet-py/requirements.txt
+RUN pip install -r src/requirements.txt
 
 COPY snv-conet-py/ snv-conet-py/
 WORKDIR snv-conet-py

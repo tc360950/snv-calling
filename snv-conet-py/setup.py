@@ -1,20 +1,4 @@
-import setuptools
+from setuptools import setup
 
-setuptools.setup(
-    name="snv-conet-py",
-    version="1.0.0",
-    author="Tomasz Cakala",
-    author_email="tc360950@gmail",
-    description="Utility wrapper for CONET",
-    url="https://github.com/tc360950/CONET",
-    classifiers=[
-        "Programming Language :: Python :: 3"
-    ],
-    packages=["generator", "solver", "stats", "stats.impl"],
-    install_requires=[
-      'numpy>=1.22.3',
-      'pandas>=1.4.2',
-      'networkx>=2.8'
-    ],
-    python_requires=">=3.7",
-)
+if __name__ == "__main__":
+    setup()
