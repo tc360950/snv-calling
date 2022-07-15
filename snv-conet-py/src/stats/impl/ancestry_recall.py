@@ -30,12 +30,6 @@ class AncestryRecall(Statistic):
                                                            inferred_snv_to_nodes.get(snv2, set()),
                                                            inferred_tree.cn_event_tree):
                         found_ancestry_pairs += 1
-                elif n2 in nx.ancestors(real_tree.cn_event_tree, n):
-                    real_ancestry_pairs += 1
-                    if self.__has_ancestor_descendant_pair(inferred_snv_to_nodes.get(snv2, set()),
-                                                           inferred_snv_to_nodes.get(snv, set()),
-                                                           inferred_tree.cn_event_tree):
-                        found_ancestry_pairs += 1
         return {
             "AncestryRecall": 0.0 if real_ancestry_pairs == 0 else found_ancestry_pairs / real_ancestry_pairs
         }

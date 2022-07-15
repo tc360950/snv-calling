@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Generator
 
 import numpy as np
 
@@ -12,11 +12,18 @@ from generator.model import SNVModel, CellDataSampler
 CCMatrix = np.ndarray
 
 
-def sample_cells_data(clusters: int, cluster_size: int, model: SNVModel, ctxt: SNVGeneratorContext,
-                      cc_reducer="median") -> Tuple[CellsData, CCMatrix]:
+def _deterministic_attachment(model: SNVModel) -> Generator[CNEvent, CNEvent, None]:
+    nodes = [n for n in model.tree.cn_event_tree.nodes if n != EventTreeRoot]
+    while True:
+        for n in nodes:
+            yield n
+
+
+def sample_cells_data(clusters: int, cluster_size: int, model: SNVModel, ctxt: SNVGeneratorContext, random_attachment: bool) -> Tuple[
+    CellsData, CCMatrix]:
     cluster_to_cell_data = {}
     cell_sampler = CellDataSampler(ctxt=ctxt)
-    attach = cell_sampler.generate_cell_attachment(model)
+    attach = cell_sampler.generate_cell_attachment(model) if random_attachment else _deterministic_attachment(model)
     for c in range(0, clusters):
         node = next(attach)
         cell = cell_sampler.generate_cell_in_node(node, model)
@@ -26,12 +33,7 @@ def sample_cells_data(clusters: int, cluster_size: int, model: SNVModel, ctxt: S
             cell.d = cell.d + cell2.d
             cell.b = cell.b + cell2.b
             cc_matrix = np.vstack([cc_matrix, cell2.corrected_counts])
-        if cc_reducer == "mean":
-            cell.corrected_counts = np.mean(cc_matrix, axis=0)
-        elif cc_reducer == "median":
-            cell.corrected_counts = np.median(cc_matrix, axis=0)
-        else:
-            raise ValueError(f"Unknown Corrected Counts matrix reducer!")
+        cell.corrected_counts = np.mean(cc_matrix, axis=0)
         cluster_to_cell_data[c] = cell
 
     attachment = [cluster_to_cell_data[c].attachment for c in range(0, clusters)]

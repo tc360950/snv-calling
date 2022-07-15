@@ -54,7 +54,13 @@ class NewtonRhapsonEstimator:
 
         for i in range(0, 30):
             target = self.calculate_target(params)
-            inverse_jacobian = np.linalg.inv(self.calculate_jacobian(params))
+            jacobian = self.calculate_jacobian(params)
+            if np.sum(self.S_0) == 0.0:
+                inverse_sub_jacobian = np.linalg.inv(jacobian[1:3, 1:3])
+                inverse_jacobian = np.zeros((3,3))
+                inverse_jacobian[1:3, 1:3] = inverse_sub_jacobian
+            else:
+                inverse_jacobian = np.linalg.inv(self.calculate_jacobian(params))
             diff_vec = np.matmul(inverse_jacobian, target)
 
             for i in range(0, diff_vec.shape[0]):
@@ -102,8 +108,9 @@ class NewtonRhapsonEstimator:
         SCN = self.SCN
 
         log_coef = math.log(1 - p.q) - math.log(p.q)
-
-        f_1 = math.log(1 - p.q) * math.exp(log_coef + math.log(np.sum(S_0))) + \
+        f_1 = 0.0
+        if np.sum(S_0) > 0.0:
+            f_1 = math.log(1 - p.q) * math.exp(log_coef + math.log(np.sum(S_0))) + \
               (0.0 if np.sum(S_0 * B_inv) == 0.0 else math.exp(log_coef + math.log(np.sum(S_0 * B_inv))))
         f_2 = math.log(1 - p.q) * math.exp(log_coef + math.log(np.sum(SCN))) + \
               math.exp(log_coef + math.log(np.sum(SCN * B_inv)))
@@ -129,7 +136,9 @@ class NewtonRhapsonEstimator:
             math.log(np.sum(S_0 * S_0 * B_inv_2)) + 2.0 * log_coef)
         f_2_m = -math.exp(math.log(np.sum(SCN * SCN * B_inv_2)) + 2.0 * log_coef)
 
-        f_1_q = -math.log(1 - p.q) * math.exp(math.log(np.sum(S_0)) - 2.0 * math.log(p.q)) \
+        f_1_q = 0.0
+        if np.sum(S_0) > 0:
+            f_1_q = -math.log(1 - p.q) * math.exp(math.log(np.sum(S_0)) - 2.0 * math.log(p.q)) \
                 - math.exp(math.log(np.sum(S_0)) - math.log(p.q)) + \
                 + 0.0 if np.sum(S_0 * A * B_inv_2) == 0.0 else math.exp(
             math.log(np.sum(S_0 * A * B_inv_2)) - 2.0 * math.log(p.q) + log_coef) + \

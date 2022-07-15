@@ -28,7 +28,8 @@ class SNVModel:
 
     @classmethod
     def create_empty_model(cls, ctxt: SNVGeneratorContext) -> 'SNVModel':
-        tree = nx.DiGraph().add_node(EventTreeRoot)
+        tree = nx.DiGraph()
+        tree.add_node(EventTreeRoot)
         return cls(tree=EventTree(cn_event_tree=tree, node_to_snvs={}),
                    node_to_cn_profile={EventTreeRoot: np.full((ctxt.number_of_bins()), fill_value=ctxt.neutral_cn())},
                    node_to_altered_counts_profile={EventTreeRoot: np.zeros((ctxt.number_of_bins()))})
@@ -74,7 +75,7 @@ class CellDataSampler:
         return depths
 
     def __sample_read_in_bin(self, cn: int) -> int:
-        log_mean = log(self.ctxt.get_d_sampling_error() if cn == 0 else cn * self.ctxt.get_per_allele_coverage())
+        log_mean = log(self.ctxt.sequencing_error() if cn == 0 else cn * self.ctxt.per_allele_coverage())
         num_failures = exp(log(1.0 - self.ctxt.read_success_prob()) + log_mean - log(self.ctxt.read_success_prob()))
         return np.random.negative_binomial(int(num_failures), 1 - self.ctxt.read_success_prob())
 
@@ -82,6 +83,6 @@ class CellDataSampler:
         if total_reads == 0:
             return 0
         if altered_counts == 0 or cn == 0:
-            return np.random.binomial(total_reads, self.ctxt.get_b_sampling_error())
+            return np.random.binomial(total_reads, self.ctxt.sequencing_error())
         return np.random.binomial(total_reads, altered_counts / cn)
 

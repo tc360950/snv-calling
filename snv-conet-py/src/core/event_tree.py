@@ -3,6 +3,7 @@ from typing import Dict, Set, List
 
 import networkx as nx
 import numpy as np
+import copy
 
 from core.types import CNEvent, SNVEvent, EventTreeRoot, Bin
 from core.utils import apply_to_nodes_in_order
@@ -19,7 +20,7 @@ class EventTree:
     def add_snv_in_node(self, node: CNEvent, snv: SNVEvent) -> None:
         if node == EventTreeRoot:
             raise ValueError("Can't add SNV event to the root node!")
-        self.node_to_snvs.get(node, set()).add(snv)
+        self.node_to_snvs.setdefault(node, set()).add(snv)
 
     def delete_snv_from_node(self, node: CNEvent, snv: SNVEvent) -> None:
         self.node_to_snvs.get(node).remove(snv)
