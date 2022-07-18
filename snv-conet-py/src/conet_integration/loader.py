@@ -50,12 +50,11 @@ class CONETLoader:
     def __load_tree(self, dir: str) -> nx.DiGraph:
         tree = nx.DiGraph()
 
+        def load_node(node: str) -> CNEvent:
+            return self.__convert_conet_node((int(node.split(",")[0]), int(node.split(",")[1])))
+
         with open(f"{dir}{CONETLoader.TREE_FILENAME}", "r") as f:
             for line in f:
                 line = line.replace("(", "").replace(")", "")
-                node0 = line.split("-")[0]
-                node1 = line.split("-")[1]
-                node0 = (int(node0.split(",")[0]), int(node0.split(",")[1]))
-                node1 = (int(node1.split(",")[0]), int(node1.split(",")[1]))
-                tree.add_edge(self.__convert_conet_node(node0), self.__convert_conet_node(node1))
+                tree.add_edge(load_node(line.split("-")[0]), load_node(line.split("-")[1]))
         return tree

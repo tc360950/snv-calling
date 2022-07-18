@@ -97,7 +97,6 @@ if __name__ == "__main__":
                                 }
                             }})
 
-        print(args.working_dir)
         generate_snv_model = generate_model_with_snv(working_dir, tree_size, clusters, num_bins, cluster_size)
         conet_container = create_conet_container().set_upstream(generate_snv_model)
         start_conet = start(container_id=conet_container)
