@@ -9,5 +9,4 @@ WORKDIR snv-conet-py
 RUN pip install .
 COPY notebooks/ notebooks/
 
-
 CMD ["sh", "-c", "jupyter notebook --port=8889 --no-browser --ip=* --allow-root"]
