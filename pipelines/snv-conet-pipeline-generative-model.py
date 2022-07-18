@@ -1,4 +1,5 @@
 import argparse
+import json
 import pickle
 from typing import Dict
 
@@ -104,7 +105,12 @@ if __name__ == "__main__":
         conet_logs = logs(container_id=conet_container).set_upstream(wait_for_conet)
         snvs_inference = attach_snvs_to_conet(working_dir).set_upstream(conet_logs)
 
-    flow_state = flow.run(parameters=dict(cluster_size=args.cluster_size, clusters=args.clusters, tree_size=args.tree_size,
-                             num_bins=args.num_bins, working_dir=args.working_dir))
 
-    print(flow_state.result[snvs_inference].result)
+
+    with open(f"results_{args.tree_size}_{args.clusters}_{args.cluster_size}", "w") as f:
+        for i in range(0, 5):
+            flow_state = flow.run(parameters=dict(cluster_size=args.cluster_size, clusters=args.clusters, tree_size=args.tree_size,
+                                 num_bins=args.num_bins, working_dir=args.working_dir))
+
+            f.write(json.dumps(flow_state.result[snvs_inference].result))
+            f.write("\n")

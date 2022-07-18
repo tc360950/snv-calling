@@ -48,7 +48,7 @@ class SNVGeneratorContext:
                                                   lambda x: x != 0)[0]
 
     def get_cn_event_candidates(self) -> List[CNEvent]:
-        return [(a, b) for a in range(0, self.number_of_bins()) for b in range(0, self.number_of_bins()) if a < b and b - a < 50]
+        return [(a, b) for a in range(0, self.number_of_bins()) for b in range(0, self.number_of_bins()) if a < b and b - a < 100]
 
     def get_snv_event_candidates(self) -> List[SNVEvent]:
         return [i for i in range(0, self.number_of_bins())]
