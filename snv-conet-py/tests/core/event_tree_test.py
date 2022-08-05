@@ -1,7 +1,6 @@
 import networkx as nx
 import numpy as np
 import pytest as pytest
-
 from core.event_tree import EventTree
 from core.types import EventTreeRoot
 
@@ -41,7 +40,9 @@ def test_bins_with_cn_change_bitmap(event_tree: EventTree):
     event_tree.mark_bins_with_cn_change_after_alteration((0, 10), bit_map)
     assert not np.any(bit_map)
 
-    bit_map = event_tree.mark_bins_with_cn_change_after_alteration((5, 15), np.full(20, False))
+    bit_map = event_tree.mark_bins_with_cn_change_after_alteration(
+        (5, 15), np.full(20, False)
+    )
     assert bit_map[11] and bit_map[12]
     for i in range(0, 20):
         assert not bit_map[i] or i in {12, 11}
