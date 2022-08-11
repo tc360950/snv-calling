@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 import networkx as nx
 import numpy as np
@@ -13,13 +13,16 @@ class CONETLoader:
     TREE_FILENAME = "inferred_tree"
     ATTACHMENT_FILENAME = "inferred_attachment"
 
-    def __init__(self, dir: str):
+    def __init__(self, dir: str, snv_to_bin: List[Bin] = None):
         self.cc = pd.read_csv(f"{dir}cc")
         self.inferred_counts = np.loadtxt(f"{dir}{CONETLoader.COUNTS_FILENAME}").astype(
             int
         )
         self.attachment = self.__load_attachment(dir)
         self.tree = self.__load_tree(dir)
+
+        if snv_to_bin is not None:
+            self.__truncate_to_snvs(snv_to_bin)
 
     def get_event_tree(self) -> EventTreeWithCounts:
         return EventTreeWithCounts(
@@ -70,3 +73,27 @@ class CONETLoader:
                     load_node(line.split("-")[0]), load_node(line.split("-")[1])
                 )
         return tree
+
+    def __truncate_to_snvs(self, snv_to_bin: List[int]):
+        CNs = np.zeros((self.inferred_counts.shape[0], len(snv_to_bin)))
+        for cell in range(CNs.shape[0]):
+            for snv, bin in enumerate(snv_to_bin):
+                CNs[cell, snv] = self.inferred_counts[cell, bin]
+        self.inferred_counts = CNs.astype(int)
+        _i = 0
+
+        def convert_node(node: CNEvent):
+            nonlocal _i
+            if node == EventTreeRoot:
+                return EventTreeRoot
+
+            snvs = [(i, b) for i, b in enumerate(snv_to_bin) if node[0] <= b < node[1]]
+            if not snvs:
+                _i += 1
+                return _i, _i
+
+            return snvs[0][0], snvs[-1][0] + 1
+
+        self.node_to_conv = {n: convert_node(n) for n in self.tree.nodes}
+        self.tree = nx.relabel_nodes(self.tree, self.node_to_conv)
+        self.attachment = {i: self.node_to_conv[n] for i, n in self.attachment.items()}
