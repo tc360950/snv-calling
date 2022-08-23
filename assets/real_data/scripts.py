@@ -4,7 +4,7 @@ from conet.data_converter.corrected_counts import CorrectedCounts
 data = pd.read_csv("./cn_matrix.csv", sep=",", header=0)
 CC = pd.read_csv("./cc_matrix.csv", sep=",", header=0)
 CC["candidate_brkp"] = 0
-CC["width"] = 150000
+CC["width"] = 500000
 
 candidates = []
 for i in range(1, data.shape[0]):
