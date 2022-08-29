@@ -24,13 +24,15 @@ parser.add_argument('--threads_likelihood', type=int, default=4)
 parser.add_argument('--verbose', type=bool, default=True)
 parser.add_argument('--neutral_cn', type=float, default=2.0)
 parser.add_argument('--output_dir', type=str, default='./')
+parser.add_argument('--end_bin_length', type=int, default=150000)
 
 args = parser.parse_args()
 
 if __name__ == "__main__":
     corrected_counts: pd.DataFrame = pd.read_csv(args.corrected_counts_file)
     cc = CorrectedCounts(corrected_counts)
-    DataConverter(event_length_normalizer=corrected_counts.shape[0]).create_CoNET_input_files(out_path=args.data_dir,
+    cc.add_chromosome_ends(neutral_cn=args.neutral_cn, end_bin_length=args.end_bin_length)
+    DataConverter(event_length_normalizer=3095677412).create_CoNET_input_files(out_path=args.data_dir,
                                                                                               corrected_counts=cc)
     conet = CONET("./CONET")
     params = CONETParameters(
