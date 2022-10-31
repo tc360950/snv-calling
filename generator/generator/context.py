@@ -21,6 +21,9 @@ class SNVGeneratorContext:
     def per_allele_coverage(self) -> float:
         return self.p.m
 
+    def snv_in_cn_proportion(self) -> float:
+        return 0.1
+
     def max_cn(self) -> int:
         return 9
 
@@ -31,7 +34,7 @@ class SNVGeneratorContext:
         return 1000
 
     def sample_cn_change(
-        self, event: CNEvent, parent_cn_profile: np.ndarray, overlap_bit_map: np.ndarray
+            self, event: CNEvent, parent_cn_profile: np.ndarray, overlap_bit_map: np.ndarray
     ) -> int:
         """
         Should return CN change caused by event @event.
@@ -44,7 +47,7 @@ class SNVGeneratorContext:
             2, self.max_cn() - np.max(parent_cn_profile[range(event[0], event[1])])
         )
         if np.all(
-            overlap_bit_map == False
+                overlap_bit_map == False
         ):  # No bin is present in child nodes - we can do full deletion
             max_possible_deletion = -min(
                 2, np.min(parent_cn_profile[[i for i in range(event[0], event[1])]])
@@ -73,7 +76,7 @@ class SNVGeneratorContext:
         return min(num_available_snvs, np.random.poisson(lam=1.0, size=None))
 
     def get_number_of_alterations(
-        self, cn_before: int, cn_after: int, parent_altered_counts: int
+            self, cn_before: int, cn_after: int, parent_altered_counts: int
     ) -> int:
         """
         How many altered copies shall be present in a bin, which had @cn_before CN

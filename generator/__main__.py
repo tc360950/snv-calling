@@ -25,7 +25,8 @@ parser.add_argument('--cluster_size', type=int, default=20)
 parser.add_argument('--random_attachment', type=bool, default=True, help="If set to False clusters will be attached to node in deterministic fashion")
 parser.add_argument('--snv_events_per_edge', type=int, default=1,
                     help="average number of SNV events on an edge")
-
+parser.add_argument('--snv_in_cn_proportion', type=float, default=0.1,
+                    help="Average proportion of cn nodes which have SNVs sampled so that they overlap with CN event")
 args = parser.parse_args()
 
 
@@ -40,6 +41,8 @@ class Context(SNVGeneratorContext):
     def read_success_prob(self) -> float:
         return args.read_success_prob
 
+    def snv_in_cn_proportion(self) -> float:
+        return args.snv_in_cn_proportion
     def per_allele_coverage(self) -> float:
         return args.coverage
 

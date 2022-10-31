@@ -53,7 +53,7 @@ class EventTreeGenerator:
             node: CNEvent, ancestor_snvs: Set[SNVEvent]
         ) -> None:
             if node != EventTreeRoot:
-                node_to_snvs[node] = self.__sample_snvs_for_node(ancestor_snvs)
+                node_to_snvs[node] = self.__sample_snvs_for_node(node, ancestor_snvs)
                 ancestor_snvs = ancestor_snvs.union(node_to_snvs[node])
             for child in cn_tree.successors(node):
                 generate_snv_events_for_node(child, ancestor_snvs)
@@ -61,12 +61,35 @@ class EventTreeGenerator:
         generate_snv_events_for_node(EventTreeRoot, set())
         return node_to_snvs
 
-    def __sample_snvs_for_node(self, ancestor_snvs: Set[SNVEvent]) -> Set[SNVEvent]:
+    def __sample_snvs_for_node(self, node: CNEvent, ancestor_snvs: Set[SNVEvent]) -> Set[SNVEvent]:
         snv_candidates = self.context.get_snv_event_candidates()
-        return sample_conditionally_without_replacement(
-            k=self.context.sample_number_of_snvs_for_edge(
-                len(snv_candidates) - len(ancestor_snvs)
-            ),
-            sampler=lambda: random.sample(snv_candidates, 1)[0],
-            condition=lambda x: x not in ancestor_snvs,
+        snv_candidates = [x for x in snv_candidates if x not in ancestor_snvs]
+
+        snvs_in_cn_event = [x for x in snv_candidates if node[0] <= x < node[1]]
+
+        snvs = set()
+        k = self.context.sample_number_of_snvs_for_edge(
+            len(snv_candidates)
         )
+        if len(snv_candidates) < k:
+            raise RuntimeError(f"Not enough snv candidates for node. Increase number of candidates or decrease mean "
+                               f"snvs per node")
+
+        if random.random() <= self.context.snv_in_cn_proportion() and snvs_in_cn_event:
+            num = min(len(snvs_in_cn_event), k)
+            snvs = sample_conditionally_without_replacement(
+                k=num,
+                sampler=lambda: random.sample(snvs_in_cn_event, 1)[0],
+                condition=lambda x: True
+            )
+        if len(snvs) == k:
+            return snvs
+
+        snv_candidates = [x for x in snv_candidates if x not in snvs]
+
+        snvs2 = sample_conditionally_without_replacement(
+            k=k - len(snvs),
+            sampler=lambda: random.sample(snv_candidates, 1)[0],
+            condition=lambda x: True,
+        )
+        return snvs2.union(snvs)
