@@ -30,14 +30,15 @@ parser.add_argument('--snv_in_cn_proportion', type=float, default=0.1,
                     help="Average proportion of cn nodes which have SNVs sampled so that they overlap with CN event")
 parser.add_argument('--simulation_dir', type=str, required=False)
 parser.add_argument('--stats_dir', type=str, required=False)
+parser.add_argument('--postfix', type=str, required=False)
 args = parser.parse_args()
 
 
 if __name__ == "__main__":
     if args.simulation_dir is not None:
-        calc = StatisticsCalculator(args.simulation_dir)
+        calc = StatisticsCalculator(args.simulation_dir, args.postfix)
         res = calc.calculate() + '\n'
-        with open(args.stats_dir, "w") as f:
+        with open(args.stats_dir, "a") as f:
             f.write(res)
     else:
         class Context(SNVGeneratorContext):
