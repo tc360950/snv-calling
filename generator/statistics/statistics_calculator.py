@@ -7,7 +7,7 @@ from generator.statistics.model_reader import ModelReader
 
 
 class StatisticsCalculator:
-    def __init__(self, dir: str, postfix: str):
+    def __init__(self, dir: str, postfix: str=None):
         self.conet = ConetReader(Path(dir) / Path("out"), Path(dir) / Path("cc"), postfix)
         self.model = ModelReader(dir)
         self.conet.load()

@@ -9,10 +9,10 @@ import pandas
 class ConetReader:
     def __init__(self, dir, cc_path: Path, postfix: str):
         self.cc_path = cc_path
-        self.tree_path = Path(dir) / Path(f"inferred_tree_{postfix}")
-        self.attachment_path = Path(dir) / Path(f"inferred_attachment_{postfix}")
-        self.snvs_path = Path(dir) / Path(f"inferred_snvs_{postfix}")
-        self.cn_path = Path(dir) / Path(f"inferred_counts_{postfix}")
+        self.tree_path = Path(dir) / Path(f"inferred_tree")
+        self.attachment_path = Path(dir) / Path(f"inferred_attachment")
+        self.snvs_path = Path(dir) / Path(f"inferred_snvs")
+        self.cn_path = Path(dir) / Path(f"inferred_counts")
         self._tree = None
         self._attachment = None
         self._cn = None
