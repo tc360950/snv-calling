@@ -3,6 +3,8 @@ from dataclasses import dataclass
 from typing import Dict, List, Set, TypeVar
 
 import networkx as nx
+import numpy as np
+
 from generator.core.event_tree import EventTree
 from generator.core.types import CNEvent, EventTreeRoot, SNVEvent
 from generator.generator.context import SNVGeneratorContext
@@ -36,10 +38,21 @@ class EventTreeGenerator:
     context: SNVGeneratorContext
 
     def generate(self, tree_size: int) -> EventTree:
-        event_tree = RandomWalkTreeSampler.sample_tree(
-            self.__generate_cn_event_nodes(tree_size)
-        )
-        return EventTree(event_tree, self.__generate_snvs(event_tree))
+        tree = nx.DiGraph()
+        nodes = self.__generate_cn_event_nodes(tree_size)
+        trunk_size = np.random.randint(int(0.1 * len(nodes)), int(0.4 * len(nodes)))
+        trunk = nodes[0:trunk_size]
+        trunk.sort(key=lambda node: node[0]* 10000 + node[1])
+
+        for i in range(1, trunk_size):
+            tree.add_edge(nodes[i-1], nodes[i])
+        tree.add_edge(nodes[trunk_size -1], nodes[trunk_size])
+        sub_trunk_edges = list(
+            RandomWalkTreeSampler.sample_tree(nodes[trunk_size:]
+        ).edges)
+        for edge in sub_trunk_edges:
+            tree.add_edge(edge[0], edge[1])
+        return EventTree(tree, self.__generate_snvs(tree))
 
     def __generate_cn_event_nodes(self, tree_size: int) -> List[CNEvent]:
         return [EventTreeRoot] + list(

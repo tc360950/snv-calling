@@ -7,7 +7,8 @@ from generator.core.model_data import Parameters
 from generator.core.types import CNEvent, SNVEvent
 from generator.generator.gen_utils import sample_conditionally_with_replacement
 
-
+class ContextException(Exception):
+     pass
 @dataclass
 class SNVGeneratorContext:
     p: Parameters
@@ -54,7 +55,10 @@ class SNVGeneratorContext:
             )
         else:
             min_cn_in_bins_with_overlap = np.min(parent_cn_profile[overlap_bit_map])
-            max_possible_deletion = -min(2, int(min_cn_in_bins_with_overlap) - 1)
+            max_possible_deletion = -min(2, int(min_cn_in_bins_with_overlap) - 1, int(np.min(parent_cn_profile[event[0]: event[1]])))
+
+        if max_possible_deletion == 0 and max_amplification == 0:
+            raise ContextException("Cant generate cn change")
         return sample_conditionally_with_replacement(
             1,
             lambda: random.randint(max_possible_deletion, max_amplification),
