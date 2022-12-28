@@ -89,13 +89,8 @@ if __name__ == "__main__":
                 f.write(f"{args.cluster_size}\n")
 
         with open("./snvs_data", "w") as f:
-            breakpoints = model.tree.get_breakpoint_loci()
             for i in range(0, ctxt.number_of_bins()):
-                smaller = [b for b in breakpoints if b <= i]
-                if smaller:
-                    f.write(f"{i};{len(smaller) - 1};1\n")
-                else:
-                    f.write(f"{i};{-1};1\n")
+                f.write(f"{i};{i};1\n")
 
         numpy.savetxt("B", cells_data.b, delimiter=";")
         numpy.savetxt("D", cells_data.d, delimiter=";")
