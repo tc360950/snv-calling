@@ -11,7 +11,7 @@ class ConetReader:
         self.cc_path = cc_path
         self.tree_path = Path(dir) / Path(f"inferred_tree")
         self.attachment_path = Path(dir) / Path(f"inferred_attachment")
-        self.snvs_path = Path(dir) / Path(f"inferred_snvs")
+        self.snvs_path = Path(dir) / Path(f"inferred_snvs2")
         self.cn_path = Path(dir) / Path(f"inferred_counts")
         self._tree = None
         self._attachment = None
@@ -54,24 +54,19 @@ class ConetReader:
         return numpy.loadtxt(str(self.cn_path), delimiter=';', dtype=int)
 
     def _load_snvs(self) -> dict:
-        cc = pandas.read_csv(str(self.cc_path), sep=",")
-        breakpoints = []
-        for i in range(cc.shape[0]):
-            if cc["candidate_brkp"].iloc[i] > 0.0:
-                breakpoints.append(i)
-
         result = defaultdict(set)
+        def line_to_edge(line):
+            line = line.replace('1_', '')
+            parent, child, rest = line.split(';')
+            return int(parent), int(child), int(rest)
+
         with self.snvs_path.open(mode="r") as f:
             data = f.read().split('\n')
             for d in data:
                 if d == '':
                     continue
-                node, snv = d.split(';')
-                node = eval(node)
-                if node != (0,0):
-                    node = (breakpoints[node[0]], breakpoints[node[1]])
-                snv = int(snv)
-                result[node].add(snv)
+                parent, child, snv = line_to_edge(d)
+                result[(parent, child)].add(snv)
         return result
 
     def _load_attachment(self) -> list:

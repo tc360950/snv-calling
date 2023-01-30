@@ -90,9 +90,7 @@ class CellDataSampler:
 
     def __sample_read_in_bin(self, cn: int) -> int:
         log_mean = log(
-            self.ctxt.sequencing_error()
-            if cn == 0
-            else cn * self.ctxt.per_allele_coverage()
+            self.ctxt.sequencing_error() + cn * self.ctxt.per_allele_coverage()
         )
         num_failures = exp(
             log(1.0 - self.ctxt.read_success_prob())
@@ -100,7 +98,7 @@ class CellDataSampler:
             - log(self.ctxt.read_success_prob())
         )
         return np.random.negative_binomial(
-            int(num_failures), 1 - self.ctxt.read_success_prob()
+            num_failures, 1 - self.ctxt.read_success_prob()
         )
 
     def __sample_altered_reads_in_bin(
