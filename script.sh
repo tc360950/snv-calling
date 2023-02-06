@@ -2,7 +2,7 @@
 
 
 #  DIR STATS
-for i in 1
+for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
 do
 cd $1
 	python -m generator --bins 10000 --clusters 1000 --tree_size 19 --snv_in_cn_proportion 0.5 --cluster_size 1 --snv_events_per_edge 40 --sequencing_error 0.00001 --coverage 0.077 --read_success_prob 0.63
