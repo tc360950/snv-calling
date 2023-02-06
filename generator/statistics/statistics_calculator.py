@@ -7,11 +7,12 @@ from generator.statistics.model_reader import ModelReader
 
 
 class StatisticsCalculator:
-    def __init__(self, dir: str, postfix: str=None):
+    def __init__(self, dir: str, prefix:str, postfix: str=None):
         self.conet = ConetReader(Path(dir) / Path("out"), Path(dir) / Path("cc"), postfix)
         self.model = ModelReader(dir)
         self.conet.load()
         self.model.load()
+        self.prefix=prefix
 
     def get_stat_names(self) -> str:
         return ';'.join([
@@ -32,7 +33,7 @@ class StatisticsCalculator:
         ])
 
     def calculate(self) -> str:
-        result = ""
+        result = f"{self.prefix},"
         inferred_nodes = set(self.conet.tree.nodes)
         real_nodes = set(self.model.tree.nodes)
         inferred_snvs = {x for y in self.conet.snvs.values() for x in y}
