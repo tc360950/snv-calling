@@ -19,7 +19,7 @@ class ConetReader:
         self._snvs = None
 
     @property
-    def cell_snv_pairs(self) -> list[tuple[int, int]]:
+    def cell_snv_pairs(self):
         result = []
         for cell, node in enumerate(self._attachment):
             path = nx.shortest_path(self.tree, (0, 0), node)
@@ -53,7 +53,7 @@ class ConetReader:
     def _load_cn(self):
         return numpy.loadtxt(str(self.cn_path), delimiter=';', dtype=int)
 
-    def _load_snvs(self) -> dict:
+    def _load_snvs(self):
         result = defaultdict(set)
         def line_to_edge(line):
             line = line.replace('1_', '')
@@ -69,7 +69,7 @@ class ConetReader:
                 result[(parent, child)].add(snv)
         return result
 
-    def _load_attachment(self) -> list:
+    def _load_attachment(self):
         with self.attachment_path.open(mode="r") as f:
             data = f.read().split('\n')
             result = []

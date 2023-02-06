@@ -16,7 +16,7 @@ class ModelReader:
         self._snvs = None
 
     @property
-    def cell_snv_pairs(self) -> list[tuple[int, int]]:
+    def cell_snv_pairs(self):
         result = []
         for cell, node in enumerate(self._attachment):
             path = nx.shortest_path(self.tree, (0, 0), node)
