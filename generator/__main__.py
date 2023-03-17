@@ -98,5 +98,13 @@ if __name__ == "__main__":
         with open(f"./event_tree", "wb") as f:
             pickle.dump(EventTreeWithCounts(model.tree, model.node_to_cn_profile), f)
 
+        with open(f"./event_tree.txt", "w") as f:
+            for edge in model.tree.cn_event_tree.edges:
+                f.write(f"{edge[0][0]},{edge[0][1]},{edge[1][0]},{edge[1][1]}\n")
+        with open(f"./real_breakpoints.txt", "w") as f:
+            breakpoints = list(set([n[0] for n in model.tree.cn_event_tree.nodes if n != (0,0)] + [n[1] for n in model.tree.cn_event_tree.nodes if n != (0,0)]))
+            breakpoints.sort()
+
+            f.write(",".join([str(s) for s in breakpoints]))
         with open(f"./attachment", "wb") as f:
             pickle.dump(cells_data.attachment, f)
