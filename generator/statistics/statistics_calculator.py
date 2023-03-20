@@ -33,7 +33,7 @@ class StatisticsCalculator:
         ])
 
     def calculate(self) -> str:
-        result = f"{self.prefix},"
+        result = f"{self.prefix};"
         inferred_nodes = set(self.conet.tree.nodes)
         real_nodes = set(self.model.tree.nodes)
         inferred_snvs = {x for y in self.conet.snvs.values() for x in y}
