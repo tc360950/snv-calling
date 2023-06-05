@@ -2,22 +2,27 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load the CSV file into a DataFrame
-file_path = '../wyniki'  # Replace with your file path
+file_path = './results_unknown_attachment_known_tree'  # Replace with your file path
 df = pd.read_csv(file_path, delimiter=";")
 
 # Check the DataFrame
 print(df.head())
-#scenario;inferred_tree_size;real_tree_size;inferred_snvs;real_snvs;cn_node_recall;cn_node_precision;cn_edge_recall;cn_edge_precision;snv_recall;snv_precision;cell_snv_recall;cell_snv_precision;cn_prob;non_trivial_cns
 
-MEASURE = 'snv_recall'
-# Create a box plot of values per each scenario value
+
+import pandas as pd
+import matplotlib.pyplot as plt
 fig, ax = plt.subplots()
-df.boxplot(column=MEASURE, by='scenario', ax=ax)
+# Assuming df is your DataFrame
+medians = df.groupby(['scenario'])['cell_snv_recall'].median()
 
-# Customize the plot
-ax.set_title(f'Box Plot of {MEASURE} per Scenario')
-ax.set_xlabel('Scenario')
-ax.set_ylabel(MEASURE)
+# Create boxplot
+boxplot = df.boxplot(column='cell_snv_precision', by='scenario', ax=ax)
 
-# Show the plot
+# Get the x position of each box
+positions = range(1, len(medians) + 1)
+
+# Add median lines over each box
+for tick, value in zip(positions, medians):
+    boxplot.axhline(value, xmin=(tick-1)/len(medians), xmax=tick/len(medians), color='r', linestyle='dashed', linewidth=2)
+plt.xticks(rotation=25)
 plt.show()

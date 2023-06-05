@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from typing import Generator, Tuple
 
 import numpy as np
@@ -92,6 +93,7 @@ class SNVModelGenerator:
                 if n != EventTreeRoot
                 else None,
             )
+            self.__remove_unidentifiable_snvs()
 
         try:
             __generate()
@@ -105,6 +107,19 @@ class SNVModelGenerator:
                 self.model = None
         logger.info("Model generated")
         return self.model
+
+    def __remove_unidentifiable_snvs(self):
+        snvs_to_max_alteration: dict[int, int] = defaultdict(lambda x: 0)
+        for node in self.model.tree.cn_event_tree.nodes:
+            for snv in self.model.tree.node_to_snvs[node]:
+                for node2 in self.model.tree.cn_event_tree.nodes:
+                    snvs_to_max_alteration[snv] = max(snvs_to_max_alteration[snv], self.model.node_to_altered_counts_profile[node2][snv])
+        for snv, max_alt in snvs_to_max_alteration.items():
+            if max_alt == 0:
+                logger.info(f"Removing SNV {snv} because it's non identifiable")
+                for node in self.model.tree.cn_event_tree.nodes:
+                    if snv in self.model.tree.node_to_snvs[node]:
+                        self.model.tree.node_to_snvs[node].remove(snv)
 
     def __tree_is_valid(self, model: SNVModel, bins: int, neutral_cn: int) -> bool:
         counts = np.zeros([1, bins], dtype=np.float64)

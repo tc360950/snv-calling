@@ -108,3 +108,7 @@ if __name__ == "__main__":
             f.write(",".join([str(s) for s in breakpoints]))
         with open(f"./attachment", "wb") as f:
             pickle.dump(cells_data.attachment, f)
+
+        with open(f"./attachment.txt", "w") as f:
+            for n1, n2 in cells_data.attachment:
+                f.write(f"{n1};{n2}\n")
