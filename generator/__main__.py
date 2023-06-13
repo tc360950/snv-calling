@@ -97,6 +97,8 @@ if __name__ == "__main__":
         numpy.savetxt("D", cells_data.d, delimiter=";")
         with open(f"./event_tree", "wb") as f:
             pickle.dump(EventTreeWithCounts(model.tree, model.node_to_cn_profile), f)
+        with open(f"./model", "wb") as f:
+            pickle.dump(model, f)
 
         with open(f"./event_tree.txt", "w") as f:
             for edge in model.tree.cn_event_tree.edges:

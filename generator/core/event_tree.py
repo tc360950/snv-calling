@@ -50,7 +50,7 @@ class EventTree:
         """
         return snv not in self.__gather_snvs_in_subtree(
             node
-        ) and snv not in self.__gather_snvs_on_path_to_root(node)
+        ) and snv not in self.gather_snvs_on_path_to_root(node)
 
     def mark_bins_in_descendant_events(
         self, node: CNEvent, bin_bit_map: np.ndarray
@@ -71,7 +71,7 @@ class EventTree:
         return bin_bit_map
 
     def mark_bins_with_snv(self, node, bin_bit_map: np.ndarray) -> np.ndarray:
-        bin_bit_map[list(self.__gather_snvs_on_path_to_root(node))] = True
+        bin_bit_map[list(self.gather_snvs_on_path_to_root(node))] = True
         return bin_bit_map
 
     def mark_bins_with_cn_change_after_alteration(
@@ -99,7 +99,7 @@ class EventTree:
         )
         return set(snvs)
 
-    def __gather_snvs_on_path_to_root(self, node: CNEvent) -> Set[SNVEvent]:
+    def gather_snvs_on_path_to_root(self, node: CNEvent) -> Set[SNVEvent]:
         snvs = []
         for n in self.__get_path_from_root(node):  # gather snvs from path to the root
             snvs.extend(self.node_to_snvs.get(n, set()))

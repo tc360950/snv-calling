@@ -1,3 +1,4 @@
+import pickle
 from collections import defaultdict
 from pathlib import Path
 
@@ -13,10 +14,12 @@ class ConetReader:
         self.attachment_path = Path(dir) / Path(f"inferred_attachment")
         self.snvs_path = Path(dir) / Path(f"inferred_snvs2")
         self.cn_path = Path(dir) / Path(f"inferred_counts")
+        self.genotypes_path = Path(dir) / Path("inferred_genotypes")
         self._tree = None
         self._attachment = None
         self._cn = None
         self._snvs = None
+        self._genotypes = None
 
     @property
     def cell_snv_pairs(self):
@@ -44,11 +47,27 @@ class ConetReader:
     def snvs(self):
         return self._snvs
 
+    @property
+    def genotypes(self):
+        return self._genotypes
+
     def load(self):
         self._tree = self._load_tree()
         self._attachment = self._load_attachment()
         self._snvs = self._load_snvs()
         self._cn = self._load_cn()
+        self._genotypes = self._load_genotypes()
+
+    def _load_genotypes(self):
+        x = numpy.loadtxt(str(self.genotypes_path), delimiter=';', dtype=int)
+        genotypes = set()
+        for i in range(0, x.shape[0]):
+            genotypes.add(
+                (x[i, 0], x[i,1], x[i,2], x[i,3])
+            )
+        with open("./dupdup_mine", "wb") as f:
+            pickle.dump(genotypes, f)
+        return genotypes
 
     def _load_cn(self):
         return numpy.loadtxt(str(self.cn_path), delimiter=';', dtype=int)

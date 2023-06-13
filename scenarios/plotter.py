@@ -1,13 +1,15 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 # Load the CSV file into a DataFrame
-file_path = './results_unknown_attachment_known_tree'  # Replace with your file path
+file_path = './results_test3'  # Replace with your file path
 df = pd.read_csv(file_path, delimiter=";")
 
 # Check the DataFrame
 print(df.head())
 
+print(df.median())
 
 import pandas as pd
 import matplotlib.pyplot as plt

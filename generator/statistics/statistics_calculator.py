@@ -29,7 +29,9 @@ class StatisticsCalculator:
             "cell_snv_recall",
             "cell_snv_precision",
             "cn_prob",
-            "non_trivial_cns"
+            "non_trivial_cns",
+            "genotypes_recall",
+            "genotypes_precision"
         ])
 
     def calculate(self) -> str:
@@ -62,8 +64,11 @@ class StatisticsCalculator:
         real_cn = self.model.cn
 
         cn_percent = numpy.sum((inferred_cn - real_cn) == 0) / inferred_cn.size
-        result += f"{cn_percent};{numpy.sum(real_cn == 2) / inferred_cn.size}"
+        result += f"{cn_percent};{numpy.sum(real_cn == 2) / inferred_cn.size};"
 
+        genotypes_recall = f"{len(self.model.genotypes.intersection(self.conet.genotypes)) / len(self.model.genotypes) if self.model.genotypes else 1}"
+        genotypes_precision = f"{len(self.model.genotypes.intersection(self.conet.genotypes)) / len(self.conet.genotypes) if self.conet.genotypes else 1}"
+        result += f"{genotypes_recall};{genotypes_precision}"
         return result
 
 

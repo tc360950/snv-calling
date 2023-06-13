@@ -1,4 +1,5 @@
 import pickle
+from collections import defaultdict
 from pathlib import Path
 
 import numpy
@@ -10,10 +11,12 @@ class ModelReader:
         self.tree_path = Path(dir) / Path("event_tree")
         self.attachment_path = Path(dir) / Path("attachment")
         self.cn_path = Path(dir) / Path("cn")
+        self.model_path = Path(dir) / Path("model")
         self._tree = None
         self._attachment = None
         self._cn = None
         self._snvs = None
+        self._genotypes = None
 
     @property
     def cell_snv_pairs(self):
@@ -41,13 +44,32 @@ class ModelReader:
     def snvs(self):
         return self._snvs
 
+    @property
+    def genotypes(self):
+        return self._genotypes
     def load(self):
         tree = self._load_tree()
         self._tree = tree.tree.cn_event_tree
         self._snvs = tree.tree.node_to_snvs
         self._attachment = self._load_attachment()
         self._cn = self._load_cn()
+        self._genotypes = self._load_genotypes()
 
+    def _load_genotypes(self):
+        with self.model_path.open(mode="rb") as f:
+            model = pickle.load(f)
+        node_to_all_snvs = defaultdict(set)
+        for node in model.tree.cn_event_tree.nodes:
+            node_to_all_snvs[node] = model.tree.gather_snvs_on_path_to_root(node)
+        genotypes = set()
+        for cell, node in enumerate(self.attachment):
+            for snv in node_to_all_snvs[node]:
+                genotypes.add(
+                    (cell, snv, int(model.node_to_altered_counts_profile[node][snv]), int(model.node_to_cn_profile[node][snv]))
+                )
+        with open("./dupdup_real", "wb") as f:
+            pickle.dump(genotypes, f)
+        return genotypes
     def _load_cn(self):
         return numpy.transpose(numpy.loadtxt(str(self.cn_path), delimiter=' ', dtype=int))
 

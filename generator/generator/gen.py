@@ -116,7 +116,7 @@ class SNVModelGenerator:
                     snvs_to_max_alteration[snv] = max(snvs_to_max_alteration[snv], self.model.node_to_altered_counts_profile[node2][snv])
         for snv, max_alt in snvs_to_max_alteration.items():
             if max_alt == 0:
-                logger.info(f"Removing SNV {snv} because it's non identifiable")
+                logger.error(f"Removing SNV {snv} because it's non identifiable")
                 for node in self.model.tree.cn_event_tree.nodes:
                     if snv in self.model.tree.node_to_snvs.get(node, set()):
                         self.model.tree.node_to_snvs.get(node, set()).remove(snv)
