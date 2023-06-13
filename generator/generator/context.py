@@ -1,6 +1,6 @@
 import random
 from dataclasses import dataclass
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 from generator.core.model_data import Parameters
@@ -65,9 +65,9 @@ class SNVGeneratorContext:
             lambda x: x != 0,
         )[0]
 
-    def get_cn_event_candidates(self) -> List[CNEvent]:
+    def get_cn_event_candidates(self) -> List[Tuple[CNEvent, float]]:
         return [
-            (a, b)
+            ((a, b), np.exp(-0.05 * (b - a)))
             for a in range(0, self.number_of_bins())
             for b in range(0, self.number_of_bins())
             if a < b and b - a < 100
