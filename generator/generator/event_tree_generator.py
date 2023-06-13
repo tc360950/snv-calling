@@ -55,8 +55,15 @@ class EventTreeGenerator:
         return EventTree(tree, self.__generate_snvs(tree))
 
     def __generate_cn_event_nodes(self, tree_size: int) -> List[CNEvent]:
+        candidates = self.context.get_cn_event_candidates()
+        candidates = [c[0] for c in candidates]
+        weights = [c[1] for c in candidates]
+        sum_ = sum(weights)
+        weights = [w /sum_ for w in weights]
+        nodes = np.random.choice(range(len(candidates)), tree_size, replace=False, p=weights)
+        nodes = [candidates[i] for i in nodes]
         return [EventTreeRoot] + list(
-            random.sample(self.context.get_cn_event_candidates(), tree_size)
+            nodes
         )
 
     def __generate_snvs(self, cn_tree: nx.DiGraph) -> Dict[CNEvent, Set[SNVEvent]]:
