@@ -1,0 +1,6 @@
+1981  nohup ./script.sh out1 stats 1000 0.1 >> log1 &
+ 1982  nohup ./script.sh out2 stats 10000 0.1 >> log2 &
+ 1983  nohup ./script.sh out3 stats 1000 1.0 >> log3 &
+ 1984  nohup ./script.sh out4 stats 10000 1.0 >> log4 &
+ 1985  nohup ./script.sh out5 stats 1000 0.01 >> log5 &
+ 1986  nohup ./script.sh out6 stats 10000 0.01 >> log6 &
