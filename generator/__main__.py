@@ -1,5 +1,6 @@
 import logging
 import pickle
+import random
 
 import numpy
 import numpy as np
@@ -31,10 +32,13 @@ parser.add_argument('--snv_in_cn_proportion', type=float, default=0.1,
 parser.add_argument('--simulation_dir', type=str, required=False)
 parser.add_argument('--stats_dir', type=str, required=False)
 parser.add_argument('--prefix', type=str, default="")
+parser.add_argument('--seed', type=int, default=1234)
 args = parser.parse_args()
 
 
 if __name__ == "__main__":
+    random.seed(int(args.seed))
+    numpy.random.seed(int(args.seed))
     if args.simulation_dir is not None:
         calc = StatisticsCalculator(args.simulation_dir, args.prefix)
         res = calc.calculate() + '\n'
