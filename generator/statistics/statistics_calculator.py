@@ -31,7 +31,10 @@ class StatisticsCalculator:
             "cn_prob",
             "non_trivial_cns",
             "genotypes_recall",
-            "genotypes_precision"
+            "genotypes_precision",
+            "ancestry_recall",
+            "branching_recall",
+            "rand_index"
         ])
 
     def calculate(self) -> str:
@@ -68,7 +71,24 @@ class StatisticsCalculator:
 
         genotypes_recall = f"{len(self.model.genotypes.intersection(self.conet.genotypes)) / len(self.model.genotypes) if self.model.genotypes else 1}"
         genotypes_precision = f"{len(self.model.genotypes.intersection(self.conet.genotypes)) / len(self.conet.genotypes) if self.conet.genotypes else 1}"
-        result += f"{genotypes_recall};{genotypes_precision}"
+        result += f"{genotypes_recall};{genotypes_precision};"
+
+        anc_cells = set(self.model.ancestor_descendant_pairs)
+        inf_anc_cells = set(self.conet.ancestor_descendant_pairs)
+        result += f"{len(anc_cells.intersection(inf_anc_cells)) / len(anc_cells)};"
+        branch_real = self.model.branching_pairs
+        branch_inf = self.conet.branching_pairs
+        result += f"{len(branch_real.intersection(branch_inf)) / len(branch_real)};"
+
+
+        def get_rand_index():
+            all_cell_pairs = [(c1, c2) for c1 in range(len(self.model.attachment)) for c2 in range(len(self.model.attachment)) if c1 < c2]
+            res = 0
+            for c1, c2 in all_cell_pairs:
+                if (self.model.attachment[c1] == self.model.attachment[c2]) == (self.conet.attachment[c1] == self.conet.attachment[c2]):
+                    res += 1
+            return res / len(all_cell_pairs)
+        result += f"{get_rand_index()}"
         return result
 
 

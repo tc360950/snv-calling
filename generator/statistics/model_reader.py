@@ -47,6 +47,38 @@ class ModelReader:
     @property
     def genotypes(self):
         return self._genotypes
+
+    @property
+    def ancestor_descendant_pairs(self) -> list[tuple[int, int]]:
+        result = []
+        for node in self._tree.nodes:
+            desc: set = nx.descendants(self._tree, node)
+            if node in desc:
+                desc.remove(node)
+            node_cells = [c for c, n in enumerate(self._attachment) if n == node]
+            desc_cells = [c for c, n in enumerate(self._attachment) if n in desc]
+            for c1 in node_cells:
+                for c2 in desc_cells:
+                    result.append((c1, c2))
+        return result
+
+    @property
+    def branching_pairs(self) -> set[tuple[int, int]]:
+        result = set()
+        for c1 in range(0, len(self._attachment)):
+            for c2 in range(0, len(self._attachment)):
+                if c1 < c2:
+                    result.add((c1, c2))
+        for cell_pair in self.ancestor_descendant_pairs:
+            c1, c2 = min(cell_pair), max(cell_pair)
+            result.remove((c1, c2))
+        for node in self._tree.nodes:
+            node_cells = [c for c, n in enumerate(self._attachment) if n == node]
+            for c1 in node_cells:
+                for c2 in node_cells:
+                    if c1 < c2:
+                        result.remove((c1, c2))
+        return result
     def load(self):
         tree = self._load_tree()
         self._tree = tree.tree.cn_event_tree
