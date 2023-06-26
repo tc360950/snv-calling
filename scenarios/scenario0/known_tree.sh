@@ -1,5 +1,6 @@
 #  DIR STATS COUNTS PRIOR
 cd $1
+mkdir out
 for i in 1 2 3 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
 do
 	python -m generator --bins 10000 --clusters 200 --tree_size 19 --snv_in_cn_proportion 0.5 --cluster_size 1 --snv_events_per_edge 40 --sequencing_error 0.00001 --coverage 10 --read_success_prob 0.63
