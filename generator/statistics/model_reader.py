@@ -99,8 +99,6 @@ class ModelReader:
                 genotypes.add(
                     (cell, snv, int(model.node_to_altered_counts_profile[node][snv]), int(model.node_to_cn_profile[node][snv]))
                 )
-        with open("./dupdup_real", "wb") as f:
-            pickle.dump(genotypes, f)
         return genotypes
     def _load_cn(self):
         return numpy.transpose(numpy.loadtxt(str(self.cn_path), delimiter=' ', dtype=int))

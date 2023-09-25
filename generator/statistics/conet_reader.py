@@ -97,8 +97,6 @@ class ConetReader:
             genotypes.add(
                 (x[i, 0], x[i,1], x[i,2], x[i,3])
             )
-        with open("./dupdup_mine", "wb") as f:
-            pickle.dump(genotypes, f)
         return genotypes
 
     def _load_cn(self):

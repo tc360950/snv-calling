@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import numpy
@@ -13,6 +14,7 @@ class StatisticsCalculator:
         self.conet.load()
         self.model.load()
         self.prefix=prefix
+        self._dir = dir
 
     def get_stat_names(self) -> str:
         return ';'.join([
@@ -34,7 +36,11 @@ class StatisticsCalculator:
             "genotypes_precision",
             "ancestry_recall",
             "branching_recall",
-            "rand_index"
+            "rand_index",
+            "clusters",
+            "mean_cluster_size",
+            "stddev_cluster_size",
+            "time"
         ])
 
     def calculate(self) -> str:
@@ -89,6 +95,10 @@ class StatisticsCalculator:
                     res += 1
             return res / len(all_cell_pairs)
         result += f"{get_rand_index()}"
+        with open(Path(self._dir) / Path("out")/ Path("run_metadata.json"), "r") as f:
+            data = json.load(f)
+        result += f";{data['clusters']};{data['mean_cluster_size']};{data['stddev_cluster_size']};{data['time']}"
+
         return result
 
 
