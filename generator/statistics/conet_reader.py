@@ -66,6 +66,43 @@ class ConetReader:
         return result
 
     @property
+    def not_ancestor_descendant_snv_pairs(self) -> list[tuple[int, int]]:
+        all_snvs = set()
+        for _, snvs in self._snvs.items():
+            all_snvs.update(snvs)
+        desc = set(self.ancestor_descendant_snv_pairs)
+        result = []
+        for snv1 in all_snvs:
+            for snv2 in all_snvs:
+                if snv1 < snv2 and (snv1, snv2) not in desc and (snv2, snv1) not in desc:
+                    result.append((snv1, snv2))
+        return result
+    @property
+    def ancestor_descendant_snv_pairs(self) -> list[tuple[int, int]]:
+        result = []
+        for node in self._tree.nodes:
+            desc: set = nx.descendants(self._tree, node)
+            if node in desc:
+                desc.remove(node)
+            node_snvs = [snvs for edge, snvs in self._snvs.items() if edge == node]
+            if node_snvs:
+                node_snvs = node_snvs[0]
+
+            desc_snvs = set()
+            for descendant in desc:
+                for edge, snvs in self._snvs.items():
+                    if descendant == edge:
+                        desc_snvs.update(snvs)
+            for n_snv in node_snvs:
+                for desc_snv in desc_snvs:
+                    result.append((n_snv, desc_snv))
+            for n_snv1 in node_snvs:
+                for n_snv2 in node_snvs:
+                    if n_snv1 < n_snv2:
+                        result.append((n_snv1, n_snv2))
+        return result
+
+    @property
     def branching_pairs(self) -> set[tuple[int, int]]:
         result = set()
         for c1 in range(0, len(self._attachment)):

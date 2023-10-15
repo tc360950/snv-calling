@@ -40,7 +40,9 @@ class StatisticsCalculator:
             "clusters",
             "mean_cluster_size",
             "stddev_cluster_size",
-            "time"
+            "time",
+            "anc_snv_recall",
+            "branching_snv_recall"
         ])
 
     def calculate(self) -> str:
@@ -99,6 +101,16 @@ class StatisticsCalculator:
             data = json.load(f)
         result += f";{data['clusters']};{data['mean_cluster_size']};{data['stddev_cluster_size']};{data['time']}"
 
+        ancestor_descendant_snv_pairs_real = set(self.model.ancestor_descendant_snv_pairs)
+        ancestor_descendant_snv_pairs_inf = set(self.conet.ancestor_descendant_snv_pairs)
+        anc_snv_recall = len(ancestor_descendant_snv_pairs_real.intersection(ancestor_descendant_snv_pairs_inf)) / len(ancestor_descendant_snv_pairs_real)
+
+        not_ancestor_descendant_snv_pairs_real = set(self.model.not_ancestor_descendant_snv_pairs)
+        not_ancestor_descendant_snv_pairs_inf = set(self.conet.not_ancestor_descendant_snv_pairs)
+        anc_snv_recall2 = len(not_ancestor_descendant_snv_pairs_real.intersection(not_ancestor_descendant_snv_pairs_inf)) / len(
+            not_ancestor_descendant_snv_pairs_real)
+
+        result += f";{anc_snv_recall}; {anc_snv_recall2}"
         return result
 
 
