@@ -1,6 +1,7 @@
 import pickle
 from collections import defaultdict
 from pathlib import Path
+from typing import List, Tuple, Set
 
 import numpy
 import networkx as nx
@@ -49,7 +50,7 @@ class ModelReader:
         return self._genotypes
 
     @property
-    def ancestor_descendant_pairs(self) -> list[tuple[int, int]]:
+    def ancestor_descendant_pairs(self) -> List[Tuple[int, int]]:
         result = []
         for node in self._tree.nodes:
             desc: set = nx.descendants(self._tree, node)
@@ -63,7 +64,7 @@ class ModelReader:
         return result
 
     @property
-    def ancestor_descendant_snv_pairs(self) -> list[tuple[int, int]]:
+    def ancestor_descendant_snv_pairs(self) -> List[Tuple[int, int]]:
         result = []
         for node in self._tree.nodes:
             desc: set = nx.descendants(self._tree, node)
@@ -84,7 +85,7 @@ class ModelReader:
         return result
 
     @property
-    def not_ancestor_descendant_snv_pairs(self) -> list[tuple[int, int]]:
+    def not_ancestor_descendant_snv_pairs(self) -> List[Tuple[int, int]]:
         all_snvs = set()
         for _, snvs in self._snvs.items():
             all_snvs.update(snvs)
@@ -97,7 +98,7 @@ class ModelReader:
         return result
 
     @property
-    def branching_pairs(self) -> set[tuple[int, int]]:
+    def branching_pairs(self) -> Set[Tuple[int, int]]:
         result = set()
         for c1 in range(0, len(self._attachment)):
             for c2 in range(0, len(self._attachment)):
@@ -137,7 +138,7 @@ class ModelReader:
     def _load_cn(self):
         return numpy.transpose(numpy.loadtxt(str(self.cn_path), delimiter=' ', dtype=int))
 
-    def _load_attachment(self) -> list:
+    def _load_attachment(self) -> List:
         with self.attachment_path.open(mode="rb") as f:
             return pickle.load(f)
 
